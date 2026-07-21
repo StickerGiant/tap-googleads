@@ -23,6 +23,13 @@ class DynamicQueryStream(ReportsStream):
 
     @cached_property
     def is_sorted(self):
+        # With a lookback window we deliberately re-fetch dates older than the
+        # bookmark, which violates the SDK's monotonic-replication-key assumption
+        # (raises InvalidStreamSortException). Treat the stream as unsorted so
+        # state is finalised as the max seen. The query is ORDER BY date ASC, so
+        # the max is still correct and the bookmark never regresses.
+        if self.config.get("lookback_days", 0):
+            return False
         return self.add_date_filter_to_query
 
     @staticmethod

@@ -156,6 +156,14 @@ class TapGoogleAds(Tap):
             default=_end_date.isoformat(),
         ),
         th.Property(
+            "lookback_days",
+            th.IntegerType,
+            description=(
+                "Number of days to re-fetch before the incremental replication bookmark, to capture late-arriving / retroactively-attributed data."
+            ),
+            default=0,
+        ),
+        th.Property(
             "enable_click_view_report_stream",
             th.BooleanType,
             description="Enables the tap's ClickViewReportStream. This requires setting up / permission on your google ads account(s)",

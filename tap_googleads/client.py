@@ -1,6 +1,6 @@
 """REST client handling, including GoogleAdsStream base class."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import cached_property
 from http import HTTPStatus
 from typing import Any, Dict, Optional
@@ -178,12 +178,22 @@ class GoogleAdsStream(RESTStream):
 
     @property
     def start_date(self):
-        start_value = (
-            self.get_starting_replication_key_value(self.context)
-            or self.config["start_date"]
-        )
+        bookmark = self.get_starting_replication_key_value(self.context)
+        config_start = datetime.fromisoformat(self.config["start_date"]).date()
 
-        return datetime.fromisoformat(start_value).strftime(r"'%Y-%m-%d'")
+        if bookmark:
+            # Re-fetch a trailing window before the bookmark so late-arriving /
+            # retroactively-attributed data (e.g. Google Ads conversions, which
+            # attribute over a 30-90 day window) is picked up and upserted.
+            lookback_days = self.config.get("lookback_days", 0)
+            start = datetime.fromisoformat(bookmark).date() - timedelta(
+                days=lookback_days
+            )
+            start = max(start, config_start)
+        else:
+            start = config_start
+
+        return start.strftime(r"'%Y-%m-%d'")
 
     @cached_property
     def end_date(self):
