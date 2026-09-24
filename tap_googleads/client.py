@@ -14,6 +14,10 @@ from tap_googleads.auth import GoogleAdsAuthenticator, ProxyGoogleAdsAuthenticat
 # remove old versions once they have been sunset
 # https://developers.google.com/google-ads/api/docs/sunset-dates#timetable
 VERSION_RENAMES = {
+    "v23": {
+        "campaign.end_date": "campaign.end_date_time",
+        "campaign.start_date": "campaign.start_date_time",
+    },
     "v22": {
         "average_cpv": "trueview_average_cpv",
         "video_view_rate": "video_trueview_view_rate",
